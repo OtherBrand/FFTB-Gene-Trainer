@@ -47,11 +47,11 @@ function showGreeting(message) {
 	
 	if(!highScore || message.highScore.numberOfMatchesCorrect > highScore.numberOfMatchesCorrect) {
 		highScore = message.highScore;
-		var scoreStatement = `Score for this bot is ${message.highScore.highScore}.`;
-		var matchesStatement = `${message.highScore.numberOfMatchesCorrect} out of ${message.highScore.numberOfMatches} matches were guessed correctly (${message.highScore.percentage}%).`;
-		var maxLevelStatement = `Max level ${message.highScore.maxLevel} with ${message.highScore.numberAtMaxLevel} genes of this level.`;
-		var minLevelStatement = `Min level ${message.highScore.minLevel} with ${message.highScore.numberAtMinLevel} genes of this level.`;
-		var totalGenesStatement = `${message.highScore.numberOfGenes} total genes`;
+		var scoreStatement = `Score for this bot is ${message.highScore.highScore.toLocaleString()}.`;
+		var matchesStatement = `${message.highScore.numberOfMatchesCorrect.toLocaleString()} out of ${message.highScore.numberOfMatches.toLocaleString()} matches were guessed correctly (${message.highScore.percentage}%).`;
+		var maxLevelStatement = `Max level ${message.highScore.maxLevel.toLocaleString()} with ${message.highScore.numberAtMaxLevel.toLocaleString()} genes of this level.`;
+		var minLevelStatement = `Min level ${message.highScore.minLevel.toLocaleString()} with ${message.highScore.numberAtMinLevel.toLocaleString()} genes of this level.`;
+		var totalGenesStatement = `${message.highScore.numberOfGenes.toLocaleString()} total genes`;
 		var logStatement = scoreStatement + ' ' + matchesStatement + ' ' + maxLevelStatement + ' ' + minLevelStatement + ' ' + totalGenesStatement;
 		
 		$("#greetings").prepend("<li>" + timeStatement + '  ' + logStatement + "</li>");
@@ -67,16 +67,16 @@ function showGreeting(message) {
 }
 
 function setScoreStats(highScoreObj) {
-	$('#score').text(highScoreObj.highScore);
-	$('#correctMatches').text(highScoreObj.numberOfMatchesCorrect);
-	$('#matchCount').text(highScoreObj.numberOfMatches);
+	$('#score').text(highScoreObj.highScore.toLocaleString());
+	$('#correctMatches').text(highScoreObj.numberOfMatchesCorrect.toLocaleString());
+	$('#matchCount').text(highScoreObj.numberOfMatches.toLocaleString());
 	$('#percentage').text(highScoreObj.percentage);
 	
-	$('#maxLevel').text(highScoreObj.maxLevel);
-	$('#maxLevelGeneCount').text(highScoreObj.numberAtMaxLevel);
-	$('#minLevel').text(highScoreObj.minLevel);
-	$('#minLevelGeneCount').text(highScoreObj.numberAtMinLevel);
-	$('#totalGenes').text(highScoreObj.numberOfGenes);
+	$('#maxLevel').text(highScoreObj.maxLevel.toLocaleString());
+	$('#maxLevelGeneCount').text(highScoreObj.numberAtMaxLevel.toLocaleString());
+	$('#minLevel').text(highScoreObj.minLevel.toLocaleString());
+	$('#minLevelGeneCount').text(highScoreObj.numberAtMinLevel.toLocaleString());
+	$('#totalGenes').text(highScoreObj.numberOfGenes.toLocaleString());
 	$('#highScoreTime').text(highScoreObj.updateDate);
 }
 
@@ -89,7 +89,7 @@ function getFormattedTime() {
 function showStats(message) {
 	$('#cpuUsageText').text(message.cpuUsage);
 	$('#ramUsageText').text(message.ramUsage);
-	$('#chainCountText').text(message.generation);
+	$('#chainCountText').text(message.generation.toLocaleString());
 }
 
 function start() {
@@ -98,12 +98,12 @@ function start() {
 	const url = '/start?population=' + population + '&tournaments=' + tournaments;
 	$.getJSON(url, function(data) {
 		var geneStatData = data
-		$('#tournaments').text(geneStatData.tournamentsToAnalyze);
-		$('#population').text(geneStatData.population);
-		$('#threads').text(geneStatData.threads);
-		$('#maxGeneLevel').text(geneStatData.maxGeneLevel);
-		$('#minGeneLevel').text(geneStatData.minGeneLevel);
-		$('#threshold').text(geneStatData.threshold);
+		$('#tournaments').text(geneStatData.tournamentsToAnalyze.toLocaleString());
+		$('#population').text(geneStatData.population.toLocaleString());
+		$('#threads').text(geneStatData.threads.toLocaleString());
+		$('#maxGeneLevel').text(geneStatData.maxGeneLevel.toLocaleString());
+		$('#minGeneLevel').text(geneStatData.minGeneLevel.toLocaleString());
+		$('#threshold').text(geneStatData.threshold.toLocaleString());
 	});
 	$('#startText').text('started');
 }

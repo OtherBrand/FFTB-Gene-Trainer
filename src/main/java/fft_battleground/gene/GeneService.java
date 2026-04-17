@@ -73,7 +73,7 @@ public class GeneService extends Thread {
 	
 	public static final double NEGATIVE_SCORE_MULTIPLIER = 5;
 	
-	public static final int THREAD_COUNT = 11;
+	public static final int THREAD_COUNT = 90;
 	public static Integer POPULATION = 2500;
 	public static final double THRESHOLD_PERCENTAGE = 0.65;
 	public static final int WRITE_FILE_PERCENTAGE_THRESHOLD = 60;

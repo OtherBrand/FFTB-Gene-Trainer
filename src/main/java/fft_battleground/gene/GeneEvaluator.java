@@ -3,6 +3,7 @@ package fft_battleground.gene;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -167,7 +168,10 @@ public class GeneEvaluator {
 				score += leftTeamBonus;
 			}
 			if(GeneService.mapsEnabled) {
-				Integer mapBonus = genomeIntegers[genome.getLeftTeamMapCodes().get(mapNumber)];
+				Integer mapBonus = Optional.ofNullable(genome.getLeftTeamMapCodes())
+						.map(mapCodes -> mapCodes.get(mapNumber))
+						.map(code -> genomeIntegers[code])
+						.orElse(0);
 				score += mapBonus;
 			}
 		} else if(side == BattleGroundTeam.RIGHT) {
@@ -176,7 +180,10 @@ public class GeneEvaluator {
 				score += rightTeamBonus;
 			}
 			if(GeneService.mapsEnabled) {
-				Integer mapBonus = genomeIntegers[genome.getRightTeamMapCodes().get(mapNumber)];
+				Integer mapBonus = Optional.ofNullable(genome.getRightTeamMapCodes())
+						.map(mapCodes -> mapCodes.get(mapNumber))
+						.map(code -> genomeIntegers[code])
+						.orElse(0);
 				score += mapBonus;
 			}
 		}

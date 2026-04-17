@@ -40,7 +40,7 @@ public class Team {
 		
 		Function<GenericElementOrdering<GenericPairing<String, Integer>>, Integer> codeFunction = orderingElement -> (int) orderingElement.getId();
 		Function<GenericElementOrdering<GenericPairing<String, Integer>>, String> abilityNameFunction = orderingElement -> orderingElement.getElement().getKey();
-		Map<String, Integer> abilityNameAbilityCodeMap = genome.getElements().parallelStream().collect(Collectors.toMap(abilityNameFunction, codeFunction));
+		Map<String, Integer> abilityNameAbilityCodeMap = genome.getElements().parallelStream().collect(Collectors.toMap(abilityNameFunction, codeFunction, (a1, a2) -> a1));
 		List<String> abilityElements = this.getTeamAbilityElements();
 		int[] codes = abilityElements.parallelStream()
 				.filter(ability -> abilityNameAbilityCodeMap.containsKey(ability))

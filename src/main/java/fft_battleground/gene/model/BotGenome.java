@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -211,17 +213,17 @@ public class BotGenome implements Cloneable {
 	
 	private static List<Integer> mapNumbers() {
 		List<Integer> mapNumbers = new LinkedList<>();
-		File mapFile = new File("Maps.txt");
-		try(BufferedReader reader = new BufferedReader(new FileReader(mapFile))) {
-			String line;
-			while((line = reader.readLine()) != null) {
-				Integer mapNumber = Match.mapNumber(line);
-				mapNumbers.add(mapNumber);
+		try {
+			URL url = new URL("https://www.fftbattleground.com/fftbg/Maps.txt");
+			try(BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+				String line;
+				while((line = reader.readLine()) != null) {
+					Integer mapNumber = Match.mapNumber(line);
+					mapNumbers.add(mapNumber);
+				}
 			}
-		} catch (FileNotFoundException e) {
-			log.error("Error reading map file", e);
 		} catch (IOException e) {
-			log.error("Error reading map file", e);
+			log.error("Error reading map file from URL", e);
 		}
 		
 		return mapNumbers;
