@@ -3,13 +3,16 @@ package fft_battleground.gene.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import fft_battleground.util.GenericPairing;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 public class ResultData {
 	private boolean abilityEnabled;
 	private boolean itemEnabled;
@@ -38,10 +41,21 @@ public class ResultData {
 	boolean SIDE_ENABLED, int numberOfAnalyzedTournaments, double threshold, int population, int maxGene, int minGene, 
 	int maxBraveFaithGene, int minBraveFaithGene, Map<Integer, Double> percentiles, String creationDateString, long score) {
 		this.geneticAttributes = new ArrayList<>();
+		Map<String, GenericPairing<String, Integer>> uniqueAttributes = new LinkedHashMap<>();
 		for(int i = 0; i < geneAttributes.size() && i < attributeNames.size(); i++) {
-			GenericPairing<String, Integer> genericPairing = new GenericPairing<>(attributeNames.get(i), geneAttributes.get(i));
-			this.geneticAttributes.add(genericPairing);
+			String attributeName = attributeNames.get(i);
+			Integer geneValue = geneAttributes.get(i);
+			GenericPairing<String, Integer> existingAttribute = uniqueAttributes.get(attributeName);
+			if(existingAttribute == null) {
+				uniqueAttributes.put(attributeName, new GenericPairing<>(attributeName, geneValue));
+			} else if(Math.abs(geneValue) > Math.abs(existingAttribute.getValue())) {
+				log.warn("Duplicate geneticAttribute key '{}': keeping new value {} over existing value {}", attributeName, geneValue, existingAttribute.getValue());
+				uniqueAttributes.put(attributeName, new GenericPairing<>(attributeName, geneValue));
+			} else {
+				log.warn("Duplicate geneticAttribute key '{}': keeping existing value {} over new value {}", attributeName, existingAttribute.getValue(), geneValue);
+			}
 		}
+		this.geneticAttributes.addAll(uniqueAttributes.values());
 		
 		this.currentResultSuccessPercentage = currentResultSuccessPercentage;
 		this.abilityEnabled = ABILITY_ENABLED;

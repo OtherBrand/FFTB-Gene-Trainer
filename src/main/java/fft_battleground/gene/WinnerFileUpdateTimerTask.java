@@ -2,11 +2,16 @@ package fft_battleground.gene;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -91,20 +96,51 @@ public class WinnerFileUpdateTimerTask extends TimerTask {
 	private void writeWinnerToFile(List<Integer> geneIntegers, List<String> attributeNames, final int percentage) throws JsonGenerationException, JsonMappingException, IOException {
 		String filename = "winner-" + GeneService.NUMBER_OF_TOURNAMENTS_TO_ANALYZE.toString() + ".txt";
 		File file = new File(filename);
-		
+		File tempFile = new File(filename + ".tmp");
+
 		Map<Integer, Double> percentiles = this.calculatePercentiles(geneIntegers);
-		
+
 		String dateString = this.generateCurrentTimeFormattedDateString();
-		
+
 		ResultData data = new ResultData(geneIntegers, attributeNames, percentage, GeneService.abilityEnabled, GeneService.itemEnabled, GeneService.userSkillsEnabled,
-				GeneService.classEnabled, GeneService.mapsEnabled, GeneService.BRAVE_FAITH_ENABLED, GeneService.SIDE_ENABLED, 
+				GeneService.classEnabled, GeneService.mapsEnabled, GeneService.BRAVE_FAITH_ENABLED, GeneService.SIDE_ENABLED,
 				GeneService.NUMBER_OF_TOURNAMENTS_TO_ANALYZE, GeneService.THRESHOLD_PERCENTAGE, GeneService.POPULATION, GeneService.MAX_RANGE_OF_GENE,
 				GeneService.MIN_RANGE_OF_GENE, GeneService.MAX_RANGE_OF_BRAVE_FAITH, GeneService.MIN_RANGE_OF_BRAVE_FAITH, percentiles, dateString,
 				this.score);
 		data.sortGeneticAttributesByAbsoluteValue();
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
-		mapper.writeValue(file, data);
+		mapper.writeValue(tempFile, data);
+		try {
+			this.verifyNoDuplicateAttributeKeys(tempFile, mapper);
+			this.replaceFileAtomically(tempFile, file);
+		} catch(IOException | IllegalStateException e) {
+			tempFile.delete();
+			throw e;
+		}
+	}
+
+	private void verifyNoDuplicateAttributeKeys(File fileToVerify, ObjectMapper mapper) throws IOException {
+		ResultData reloadedData = mapper.readValue(fileToVerify, ResultData.class);
+		Set<String> seenKeys = new HashSet<>();
+		List<String> duplicateKeys = reloadedData.getGeneticAttributes().stream()
+				.map(attribute -> attribute.getKey())
+				.filter(attributeKey -> !seenKeys.add(attributeKey))
+				.collect(Collectors.toList());
+		if(duplicateKeys.size() > 0) {
+			throw new IllegalStateException("Refusing to publish winner file " + fileToVerify.getPath()
+					+ ": duplicate geneticAttributes keys found after write: " + duplicateKeys.toString());
+		}
+		log.info("Verified winner file {} contains {} unique geneticAttribute keys", fileToVerify.getName(), seenKeys.size());
+	}
+
+	private void replaceFileAtomically(File tempFile, File finalFile) throws IOException {
+		try {
+			Files.move(tempFile.toPath(), finalFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+		} catch(AtomicMoveNotSupportedException e) {
+			log.warn("Atomic move is not supported on this filesystem, falling back to a regular move for the winner file", e);
+			Files.move(tempFile.toPath(), finalFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
 	}
 	
 	private void updateHighScore(int percentage, int maxGeneValue, long countAtMaxLevel, int minGeneValue, long countAtMinLevel, int geneCount) {

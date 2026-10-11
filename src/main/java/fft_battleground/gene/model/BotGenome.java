@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -60,39 +61,55 @@ public class BotGenome implements Cloneable {
 	
 	public BotGenome(Tips tips) {
 		this.elements = new LinkedList<>();
+		Set<String> seenElementNames = new HashSet<>();
 		if(GeneService.BRAVE_FAITH_ENABLED) {
-			GenericElementOrdering<GenericPairing<String, Integer>> braveElement = this.createBlankValuePairing("Brave");
-			this.elements.add(braveElement);
-			this.braveCode = braveElement.getId();
-			GenericElementOrdering<GenericPairing<String, Integer>> faithElement = this.createBlankValuePairing("Faith");
-			this.elements.add(faithElement);
-			this.faithCode = faithElement.getId();
+			GenericElementOrdering<GenericPairing<String, Integer>> braveElement = this.addUniqueElement("Brave", seenElementNames);
+			if(braveElement != null) {
+				this.braveCode = braveElement.getId();
+			}
+			GenericElementOrdering<GenericPairing<String, Integer>> faithElement = this.addUniqueElement("Faith", seenElementNames);
+			if(faithElement != null) {
+				this.faithCode = faithElement.getId();
+			}
 		}
 		if(GeneService.SIDE_ENABLED) {
-			GenericElementOrdering<GenericPairing<String, Integer>> leftElement = this.createBlankValuePairing("LeftTeam");
-			this.elements.add(leftElement);
-			this.leftTeamCode = leftElement.getId();
-			
-			GenericElementOrdering<GenericPairing<String, Integer>> rightElement = this.createBlankValuePairing("RightTeam");
-			this.elements.add(rightElement);
-			this.rightTeamCode = rightElement.getId();
+			GenericElementOrdering<GenericPairing<String, Integer>> leftElement = this.addUniqueElement("LeftTeam", seenElementNames);
+			if(leftElement != null) {
+				this.leftTeamCode = leftElement.getId();
+			}
+
+			GenericElementOrdering<GenericPairing<String, Integer>> rightElement = this.addUniqueElement("RightTeam", seenElementNames);
+			if(rightElement != null) {
+				this.rightTeamCode = rightElement.getId();
+			}
 		}
 		for(String elementName: BotGenome.elementNames(tips)) {
-			GenericElementOrdering<GenericPairing<String, Integer>> element = this.createBlankValuePairing(elementName);
-			this.elements.add(element);
+			this.addUniqueElement(elementName, seenElementNames);
 		}
 		if(GeneService.mapsEnabled) {
 			for(Integer mapNumber: BotGenome.mapNumbers()) {
-				GenericElementOrdering<GenericPairing<String, Integer>> leftElement = this.createBlankValuePairing(mapNumber.toString() + "-Left");
-				this.elements.add(leftElement);
-				this.leftTeamMapCodes.put(mapNumber, leftElement.getId());
-				
-				GenericElementOrdering<GenericPairing<String, Integer>> rightElement = this.createBlankValuePairing(mapNumber.toString() + "-Right");
-				this.elements.add(rightElement);
-				this.rightTeamMapCodes.put(mapNumber, rightElement.getId());
+				GenericElementOrdering<GenericPairing<String, Integer>> leftElement = this.addUniqueElement(mapNumber.toString() + "-Left", seenElementNames);
+				if(leftElement != null) {
+					this.leftTeamMapCodes.put(mapNumber, leftElement.getId());
+				}
+
+				GenericElementOrdering<GenericPairing<String, Integer>> rightElement = this.addUniqueElement(mapNumber.toString() + "-Right", seenElementNames);
+				if(rightElement != null) {
+					this.rightTeamMapCodes.put(mapNumber, rightElement.getId());
+				}
 			}
 		}
 		//this.ensureGoodOrdering();
+	}
+
+	private GenericElementOrdering<GenericPairing<String, Integer>> addUniqueElement(String elementName, Set<String> seenElementNames) {
+		if(!seenElementNames.add(elementName)) {
+			log.warn("Skipping duplicate genome element name '{}'; a gene with this name already exists so no additional gene slot is created", elementName);
+			return null;
+		}
+		GenericElementOrdering<GenericPairing<String, Integer>> ordering = this.createBlankValuePairing(elementName);
+		this.elements.add(ordering);
+		return ordering;
 	}
 	
 	public List<IntegerGene> toGeneList() {
